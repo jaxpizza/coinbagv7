@@ -9,7 +9,12 @@
 [[plugins]]
   package = "@netlify/plugin-functions-install-core"
 
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://coinbagv7.netlify.app/.netlify/functions/fetchTokenData https://*.fauna.com;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://coinbagv7.netlify.app/.netlify/functions/fetchTokenData https://*.fauna.com https://pro-api.coinmarketcap.com;"

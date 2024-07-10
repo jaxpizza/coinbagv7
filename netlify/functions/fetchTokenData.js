@@ -1,10 +1,13 @@
 const axios = require('axios');
+const faunadb = require('faunadb');
+
+const q = faunadb.query;
+const client = new faunadb.Client({ secret: process.env.FAUNA_SECRET_KEY });
 
 exports.handler = async function(event, context) {
   console.log('Function invoked');
   try {
-    console.log('API Key:', process.env.REACT_APP_CMC_API_KEY ? 'Present' : 'Missing');
-    
+    // Fetch current data
     const currentDataResponse = await axios.get('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest', {
       params: { id: '31798' },
       headers: {
@@ -14,46 +17,49 @@ exports.handler = async function(event, context) {
 
     console.log('Current data fetched successfully');
 
-    const historicalDataResponse = await axios.get('https://pro-api.coinmarketcap.com/v3/cryptocurrency/quotes/historical', {
-      params: { 
-        id: '31798',
-        time_start: '2023-01-01', // Adjust this date as needed
-        interval: '1d' // Daily intervals
-      },
-      headers: {
-        'X-CMC_PRO_API_KEY': process.env.REACT_APP_CMC_API_KEY,
-      }
-    });
+    const currentData = currentDataResponse.data.data['31798'];
 
-    console.log('Historical data fetched successfully');
+    // Store current data in FaunaDB
+    await client.query(
+      q.Create(
+        q.Collection('token_data'),
+        {
+          data: {
+            date: new Date().toISOString(),
+            price: currentData.quote.USD.price,
+            volume: currentData.quote.USD.volume_24h
+          }
+        }
+      )
+    );
+
+    // Fetch historical data from FaunaDB
+    const historyResult = await client.query(
+      q.Map(
+        q.Paginate(
+          q.Reverse(q.Match(q.Index('token_data_by_date'))),
+          { size: 100 }
+        ),
+        q.Lambda('x', q.Get(q.Var('x')))
+      )
+    );
+
+    const historicalData = historyResult.data.map(item => item.data);
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         currentData: currentDataResponse.data,
-        historicalData: historicalDataResponse.data
+        historicalData: historicalData
       })
     };
   } catch (error) {
-    console.error('Error in fetchTokenData:', JSON.stringify({
-      message: error.message,
-      response: error.response ? {
-        data: error.response.data,
-        status: error.response.status,
-        headers: error.response.headers
-      } : 'No response',
-      config: error.config ? {
-        url: error.config.url,
-        method: error.config.method,
-        headers: error.config.headers
-      } : 'No config'
-    }));
-
+    console.error('Error in fetchTokenData:', error);
     return {
       statusCode: error.response ? error.response.status : 500,
       body: JSON.stringify({ 
         error: 'An error occurred while fetching data',
-        details: error.response ? error.response.data : error.message
+        details: error.message
       })
     };
   }
