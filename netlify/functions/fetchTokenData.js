@@ -14,10 +14,24 @@ exports.handler = async function(event, context) {
 
     console.log('Current data fetched successfully');
 
+    const historicalDataResponse = await axios.get('https://pro-api.coinmarketcap.com/v3/cryptocurrency/quotes/historical', {
+      params: { 
+        id: '31798',
+        time_start: '2023-01-01', // Adjust this date as needed
+        interval: '1d' // Daily intervals
+      },
+      headers: {
+        'X-CMC_PRO_API_KEY': process.env.REACT_APP_CMC_API_KEY,
+      }
+    });
+
+    console.log('Historical data fetched successfully');
+
     return {
       statusCode: 200,
       body: JSON.stringify({
-        currentData: currentDataResponse.data
+        currentData: currentDataResponse.data,
+        historicalData: historicalDataResponse.data
       })
     };
   } catch (error) {
