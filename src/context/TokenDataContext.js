@@ -24,12 +24,7 @@ export const TokenDataProvider = ({ children }) => {
         }
       }
 
-      const response = await axios.get(process.env.REACT_APP_CMC_API_URL, {
-        params: { id: '31798' },
-        headers: {
-          'X-CMC_PRO_API_KEY': process.env.REACT_APP_CMC_API_KEY,
-        }
-      });
+      const response = await axios.get('/.netlify/functions/fetchTokenData');
       const newData = response.data.data['31798'];
       setTokenData(newData);
       localStorage.setItem('tokenData', JSON.stringify(newData));
