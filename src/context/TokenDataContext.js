@@ -17,7 +17,7 @@ export const TokenDataProvider = ({ children }) => {
       const response = await axios.get('/.netlify/functions/fetchTokenData');
       console.log('API Response:', response.data);
 
-      const { currentData, historicalData } = response.data;
+      const { currentData } = response.data;
 
       if (!currentData || !currentData.data || !currentData.data['31798']) {
         throw new Error('Invalid current data structure received from API');
@@ -25,10 +25,9 @@ export const TokenDataProvider = ({ children }) => {
 
       setTokenData(currentData.data['31798']);
 
-      // For now, we're not handling historical data
       const currentTimestamp = new Date().toLocaleDateString();
-      setPriceHistory([{ time: currentTimestamp, price: currentData.data['31798'].quote.USD.price }]);
-      setVolumeHistory([{ time: currentTimestamp, volume: currentData.data['31798'].quote.USD.volume_24h }]);
+      setPriceHistory(prev => [...prev, { time: currentTimestamp, price: currentData.data['31798'].quote.USD.price }]);
+      setVolumeHistory(prev => [...prev, { time: currentTimestamp, volume: currentData.data['31798'].quote.USD.volume_24h }]);
 
       setLoading(false);
     } catch (err) {

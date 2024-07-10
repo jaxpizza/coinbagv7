@@ -14,14 +14,10 @@ exports.handler = async function(event, context) {
 
     console.log('Current data fetched successfully');
 
-    // For now, let's skip the historical data fetch to isolate the issue
-    // const historicalDataResponse = await axios.get('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/historical', {...});
-
     return {
       statusCode: 200,
       body: JSON.stringify({
-        currentData: currentDataResponse.data,
-        // historicalData: historicalDataResponse.data
+        currentData: currentDataResponse.data
       })
     };
   } catch (error) {
