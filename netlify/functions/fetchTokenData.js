@@ -7,7 +7,7 @@ const client = new faunadb.Client({ secret: process.env.FAUNA_SECRET_KEY });
 exports.handler = async function(event, context) {
   console.log('Function invoked');
   try {
-    // Fetch current data
+    console.log('Fetching current data...');
     const currentDataResponse = await axios.get('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest', {
       params: { id: '31798' },
       headers: {
@@ -16,10 +16,11 @@ exports.handler = async function(event, context) {
     });
 
     console.log('Current data fetched successfully');
+    console.log('Current data:', JSON.stringify(currentDataResponse.data));
 
     const currentData = currentDataResponse.data.data['31798'];
 
-    // Store current data in FaunaDB
+    console.log('Storing data in FaunaDB...');
     await client.query(
       q.Create(
         q.Collection('token_data'),
@@ -32,8 +33,9 @@ exports.handler = async function(event, context) {
         }
       )
     );
+    console.log('Data stored in FaunaDB successfully');
 
-    // Fetch historical data from FaunaDB
+    console.log('Fetching historical data from FaunaDB...');
     const historyResult = await client.query(
       q.Map(
         q.Paginate(
@@ -43,6 +45,7 @@ exports.handler = async function(event, context) {
         q.Lambda('x', q.Get(q.Var('x')))
       )
     );
+    console.log('Historical data fetched successfully');
 
     const historicalData = historyResult.data.map(item => item.data);
 
@@ -55,11 +58,13 @@ exports.handler = async function(event, context) {
     };
   } catch (error) {
     console.error('Error in fetchTokenData:', error);
+    console.error('Error stack:', error.stack);
     return {
-      statusCode: error.response ? error.response.status : 500,
+      statusCode: 500,
       body: JSON.stringify({ 
         error: 'An error occurred while fetching data',
-        details: error.message
+        details: error.message,
+        stack: error.stack
       })
     };
   }

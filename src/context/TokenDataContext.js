@@ -43,10 +43,11 @@ export const TokenDataProvider = ({ children }) => {
       console.error('Error fetching data:', err);
       console.error('Error details:', {
         message: err.message,
-        response: err.response,
-        request: err.request
+        response: err.response?.data,
+        status: err.response?.status,
+        headers: err.response?.headers
       });
-      setError(err.message || 'An error occurred while fetching data');
+      setError(err.response?.data?.details || err.message || 'An error occurred while fetching data');
       setLoading(false);
     }
   };
