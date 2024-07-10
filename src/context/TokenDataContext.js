@@ -8,7 +8,6 @@ export const useTokenData = () => useContext(TokenDataContext);
 export const TokenDataProvider = ({ children }) => {
   const [tokenData, setTokenData] = useState(null);
   const [priceHistory, setPriceHistory] = useState([]);
-  const [volumeHistory, setVolumeHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -17,37 +16,27 @@ export const TokenDataProvider = ({ children }) => {
       const response = await axios.get('/.netlify/functions/fetchTokenData');
       console.log('API Response:', response.data);
 
-      const { currentData, historicalData } = response.data;
+      const { currentPrice, price24hAgo, priceChange24h } = response.data;
 
-      if (!currentData || !currentData.data || !currentData.data['31798']) {
-        throw new Error('Invalid current data structure received from API');
+      setTokenData({
+        currentPrice,
+        priceChange24h
+      });
+
+      // Create a 24-hour price history
+      const now = new Date();
+      const history = [];
+      for (let i = 24; i >= 0; i--) {
+        const time = new Date(now - i * 60 * 60 * 1000);
+        const price = i === 0 ? currentPrice : price24hAgo + (currentPrice - price24hAgo) * (24 - i) / 24;
+        history.push({ time: time.toLocaleTimeString(), price });
       }
 
-      setTokenData(currentData.data['31798']);
-
-      const updatedPriceHistory = [
-        ...historicalData.map(item => ({ time: new Date(item.date).toLocaleDateString(), price: item.price })),
-        { time: new Date().toLocaleDateString(), price: currentData.data['31798'].quote.USD.price }
-      ];
-
-      const updatedVolumeHistory = [
-        ...historicalData.map(item => ({ time: new Date(item.date).toLocaleDateString(), volume: item.volume })),
-        { time: new Date().toLocaleDateString(), volume: currentData.data['31798'].quote.USD.volume_24h }
-      ];
-
-      setPriceHistory(updatedPriceHistory);
-      setVolumeHistory(updatedVolumeHistory);
-
+      setPriceHistory(history);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching data:', err);
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        headers: err.response?.headers
-      });
-      setError(err.response?.data?.details || err.message || 'An error occurred while fetching data');
+      setError(err.message || 'An error occurred while fetching data');
       setLoading(false);
     }
   };
@@ -59,7 +48,7 @@ export const TokenDataProvider = ({ children }) => {
   }, []);
 
   return (
-    <TokenDataContext.Provider value={{ tokenData, priceHistory, volumeHistory, loading, error }}>
+    <TokenDataContext.Provider value={{ tokenData, priceHistory, loading, error }}>
       {children}
     </TokenDataContext.Provider>
   );
