@@ -45,10 +45,10 @@ const HomePage = () => {
       <section className="py-8 md:py-16 px-4 bg-gray-800" id="charts">
         <div className="container mx-auto">
           <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-8 text-center text-teal-400 glow">
-            JENNER Token Price Chart
+            JENNER Token Price History
           </h3>
           <div className="bg-gray-700 rounded-lg shadow-xl p-2 md:p-6">
-            <ResponsiveContainer width="100%" height={300} minWidth={300}>
+            <ResponsiveContainer width="100%" height={400} minWidth={300}>
               <LineChart data={priceHistory}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" />
                 <XAxis dataKey="time" stroke="#4FD1C5" />
@@ -65,10 +65,10 @@ const HomePage = () => {
       <section className="py-8 md:py-16 px-4 bg-gray-900" id="volume-chart">
         <div className="container mx-auto">
           <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-8 text-center text-teal-400 glow">
-            JENNER Token Volume Chart
+            JENNER Token Volume History
           </h3>
           <div className="bg-gray-800 rounded-lg shadow-xl p-2 md:p-6">
-            <ResponsiveContainer width="100%" height={300} minWidth={300}>
+            <ResponsiveContainer width="100%" height={400} minWidth={300}>
               <BarChart data={volumeHistory}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" />
                 <XAxis dataKey="time" stroke="#4FD1C5" />

@@ -15,12 +15,27 @@ export const TokenDataProvider = ({ children }) => {
   const fetchData = async () => {
     try {
       const response = await axios.get('/.netlify/functions/fetchTokenData');
-      const newData = response.data.data['31798'];
-      setTokenData(newData);
+      const { currentData, historicalData } = response.data;
 
-      const timestamp = new Date().toLocaleTimeString();
-      setPriceHistory(prev => [...prev, { time: timestamp, price: newData.quote.USD.price }]);
-      setVolumeHistory(prev => [...prev, { time: timestamp, volume: newData.quote.USD.volume_24h }]);
+      setTokenData(currentData.data['31798']);
+
+      const historicalPrices = historicalData.data['31798'].quotes.map(quote => ({
+        time: new Date(quote.timestamp).toLocaleDateString(),
+        price: quote.quote.USD.price
+      }));
+
+      const historicalVolumes = historicalData.data['31798'].quotes.map(quote => ({
+        time: new Date(quote.timestamp).toLocaleDateString(),
+        volume: quote.quote.USD.volume_24h
+      }));
+
+      // Add the current data point
+      const currentTimestamp = new Date().toLocaleDateString();
+      historicalPrices.push({ time: currentTimestamp, price: currentData.data['31798'].quote.USD.price });
+      historicalVolumes.push({ time: currentTimestamp, volume: currentData.data['31798'].quote.USD.volume_24h });
+
+      setPriceHistory(historicalPrices);
+      setVolumeHistory(historicalVolumes);
 
       setLoading(false);
     } catch (err) {
