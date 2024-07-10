@@ -7,31 +7,25 @@ export const useTokenData = () => useContext(TokenDataContext);
 
 export const TokenDataProvider = ({ children }) => {
   const [tokenData, setTokenData] = useState(null);
+  const [priceHistory, setPriceHistory] = useState([]);
+  const [volumeHistory, setVolumeHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchData = async () => {
     try {
-      const cachedData = localStorage.getItem('tokenData');
-      const cachedTimestamp = localStorage.getItem('tokenDataTimestamp');
-      
-      if (cachedData && cachedTimestamp) {
-        const currentTime = new Date().getTime();
-        if (currentTime - parseInt(cachedTimestamp) < 300000) { // 5 minutes
-          setTokenData(JSON.parse(cachedData));
-          setLoading(false);
-          return;
-        }
-      }
-
       const response = await axios.get('/.netlify/functions/fetchTokenData');
       const newData = response.data.data['31798'];
       setTokenData(newData);
-      localStorage.setItem('tokenData', JSON.stringify(newData));
-      localStorage.setItem('tokenDataTimestamp', new Date().getTime().toString());
+
+      const timestamp = new Date().toLocaleTimeString();
+      setPriceHistory(prev => [...prev, { time: timestamp, price: newData.quote.USD.price }]);
+      setVolumeHistory(prev => [...prev, { time: timestamp, volume: newData.quote.USD.volume_24h }]);
+
       setLoading(false);
     } catch (err) {
-      setError(err.message);
+      console.error('Error fetching data:', err);
+      setError(err.message || 'An error occurred while fetching data');
       setLoading(false);
     }
   };
@@ -43,7 +37,7 @@ export const TokenDataProvider = ({ children }) => {
   }, []);
 
   return (
-    <TokenDataContext.Provider value={{ tokenData, loading, error }}>
+    <TokenDataContext.Provider value={{ tokenData, priceHistory, volumeHistory, loading, error }}>
       {children}
     </TokenDataContext.Provider>
   );
