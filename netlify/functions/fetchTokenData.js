@@ -12,8 +12,8 @@ exports.handler = async function(event, context) {
     const historicalDataResponse = await axios.get('https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/historical', {
       params: { 
         id: '31798',
-        time_start: '2023-01-01', // Adjust this date as needed
-        interval: '1d' // Daily intervals
+        time_start: '2023-01-01',
+        interval: '1d'
       },
       headers: {
         'X-CMC_PRO_API_KEY': process.env.REACT_APP_CMC_API_KEY,
@@ -28,10 +28,13 @@ exports.handler = async function(event, context) {
       })
     };
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('Error in fetchTokenData:', error.response ? error.response.data : error.message);
     return {
-      statusCode: 422,
-      body: JSON.stringify({ error: 'An error occurred while fetching data' })
+      statusCode: error.response ? error.response.status : 500,
+      body: JSON.stringify({ 
+        error: 'An error occurred while fetching data',
+        details: error.response ? error.response.data : error.message
+      })
     };
   }
 }
