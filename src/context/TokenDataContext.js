@@ -15,6 +15,8 @@ export const TokenDataProvider = ({ children }) => {
   const fetchData = async () => {
     try {
       const response = await axios.get('/.netlify/functions/fetchTokenData');
+      console.log('API Response:', response.data);
+
       const { currentData, historicalData } = response.data;
 
       if (!currentData || !currentData.data || !currentData.data['31798']) {
@@ -23,30 +25,10 @@ export const TokenDataProvider = ({ children }) => {
 
       setTokenData(currentData.data['31798']);
 
-      if (historicalData && historicalData.data && historicalData.data['31798'] && historicalData.data['31798'].quotes) {
-        const historicalPrices = historicalData.data['31798'].quotes.map(quote => ({
-          time: new Date(quote.timestamp).toLocaleDateString(),
-          price: quote.quote.USD.price
-        }));
-
-        const historicalVolumes = historicalData.data['31798'].quotes.map(quote => ({
-          time: new Date(quote.timestamp).toLocaleDateString(),
-          volume: quote.quote.USD.volume_24h
-        }));
-
-        // Add the current data point
-        const currentTimestamp = new Date().toLocaleDateString();
-        historicalPrices.push({ time: currentTimestamp, price: currentData.data['31798'].quote.USD.price });
-        historicalVolumes.push({ time: currentTimestamp, volume: currentData.data['31798'].quote.USD.volume_24h });
-
-        setPriceHistory(historicalPrices);
-        setVolumeHistory(historicalVolumes);
-      } else {
-        console.warn('Historical data is missing or in an unexpected format');
-        // Use only current data if historical data is not available
-        setPriceHistory([{ time: new Date().toLocaleDateString(), price: currentData.data['31798'].quote.USD.price }]);
-        setVolumeHistory([{ time: new Date().toLocaleDateString(), volume: currentData.data['31798'].quote.USD.volume_24h }]);
-      }
+      // For now, we're not handling historical data
+      const currentTimestamp = new Date().toLocaleDateString();
+      setPriceHistory([{ time: currentTimestamp, price: currentData.data['31798'].quote.USD.price }]);
+      setVolumeHistory([{ time: currentTimestamp, volume: currentData.data['31798'].quote.USD.volume_24h }]);
 
       setLoading(false);
     } catch (err) {
